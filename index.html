@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Carregando...</title>
+	<meta http-equiv="Cache-control" content="public">
+	<meta http-equiv="Cache-Control" content="max-age=172800">
+	<script type="text/javascript" src="qrcode.min.js"></script>
+	<style type="text/css">
+		@import url('https://fonts.googleapis.com/css2?family=Heebo&display=swap');
+
+		:root{
+			--black: #131313;
+			--red: #9f1a1a;
+		}
+		body{
+			font-family: 'Heebo', sans-serif;
+			padding: 0;
+			margin: 0;
+			background-color: black;
+			overflow: hidden;
+		}
+
+		html, body{
+			height: 100%;
+			width: 100%;
+		}
+
+		#footer-bar{
+			display: flex;
+			width: 100%;
+			position: fixed;
+			height: 15vh;
+			background-image: linear-gradient(#13131300, #00000091, var(--black));;
+			background-image: -webkit-linear-gradient(#13131300, #00000066, #00000077, #00000099, #000000bb, #000000ff);
+			color: white;
+			bottom: 0;
+			align-items: center;
+			padding-top: 10vh;
+			justify-content: space-between;
+		}
+
+		#report-image{
+			width: 100%;
+			height: 100vh;
+		}
+
+		figure{
+			margin: 0;
+		}
+
+		#report-image img{
+			opacity: 0;
+			width: 100%;
+			height: 100%;
+			transition: 0.6s;
+		}
+
+		#logo{
+			opacity: 0;
+			transition: 0.6s;
+			height: 50%;
+    		width: 100vw;
+    		max-width: 13vw;
+			padding: 0 30px;
+			margin-top: -1vh;
+		}
+
+		#logo img{
+			width: 100%;
+			height: 90%;
+		}
+
+		#news-text{
+			font-size: 40px;
+			margin-right: auto;
+			max-width: 70vw;
+		}
+
+		#logo p{
+			margin-top: -5px;
+			font-size: 20px;
+		}
+
+		#categoria{
+			background-color: blue;
+			position: absolute;
+			top: 0;
+			left: 4%;
+			font-size: 40px;
+			color: white;
+			transition: transform 2s;
+			transition-delay: 0.2s;
+			padding: 0.8vw;
+			padding-top: 2.5vh;
+			width: 14.5vw;
+			text-align: center;
+			display: flex;
+    		flex-direction: column;
+    		align-items: center;
+		}
+
+		#categoria p{
+			margin-top: 2vh;
+			font-weight: bold;
+		}
+
+		.categoria-oculta{
+			transform: translateY(-97vh);
+		}
+
+		p{
+			line-height: 120%;
+			margin: 0;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			display: -webkit-box;
+			-webkit-line-clamp: 2;
+			-webkit-box-orient: vertical;			
+		}
+
+		#loading{
+			display: flex;
+    		align-items: center;
+			color: whitesmoke;
+			font-size: 5vw;
+			position: absolute;
+			left: 37%;
+			top: 43%;
+		}
+
+		#loading-icon{
+			margin-left: 0.5vw;
+			width: 1.5vw;
+			height: 1.5vw;
+			border: 0.6vw solid gray;
+			border-left-color: lightgray;
+			border-radius: 50%;
+			display: inline-block;
+			animation: girar 1.2s linear infinite;
+		}
+
+		@keyframes girar{
+			0%{
+				transform: rotate(0deg);
+			}
+			100%{
+				transform: rotate(360deg);
+			}
+		}
+
+		#qrcode{
+			background-color: white;
+		}
+	</style>
+
+</head>
+<body>
+	<section id="categoria" class="categoria-oculta">
+		<div id="qrcode"></div>	
+		<p>Categoria</p>
+	</section>
+
+	<!-- Imagem de fundo -->
+	<figure id="report-image">
+		<p id="loading">Carregando<span id="loading-icon"></span></p>
+		<img src="">
+	</figure>
+	<!-- Logo e Noticia -->
+	<footer id="footer-bar">
+		<!-- Logo site fonte noticia -->
+		<figure id="logo">
+			<img src="https://lineanews.com.br/wp-content/uploads/2021/09/LOGOBRANCARODAPE-1.png">
+			<p>www.lineanews.com.br</p>
+		</figure>
+
+		<!-- Texto da noticia -->
+		<div id="news-text">
+			<p></p>
+		</div>
+
+	</footer>
+
+	<script type="text/javascript">
+			//Variavel para multiplas categorias de noticia
+			const categorias = ['Brasil', 'Esportes', 'Entretenimento', 'Paraná', 'Internacional'];
+
+			//Limite de noticias a exibir por categoria
+			//OBS: Limite Máximo é 10
+			const limiteNoticias = 2;
+
+			//Variavel que puxa o nome da categoria
+			const categoria = puxarCategoria();
+
+			//Variavel categoria sem acentos ou letras maiusculas.
+			const categoriaNormalizada = removerAcentos(categoria).toLowerCase();
+
+			//Cores das atuais categorias do site;
+			const corCategorias = {
+				brasil: "#0067b1",
+				cidades: "#001781",
+				entretenimento: "#da0080",
+				esportes: "#e96b00",
+				internacional: "#650e81",
+				parana: "#d28d07",
+				saude: "#006b2b"
+			};			
+
+			//Parte abaixo apenas para programadores.
+
+			//Requisita o feed de noticias
+			const feed = new XMLHttpRequest();
+
+			var cor = pegarCor(categoriaNormalizada, corCategorias);
+
+			var tagCategoria = document.querySelector("#categoria")
+
+			feed.onreadystatechange = function(){
+				if(this.readyState == 4 && this.status == 200){
+					//Pega o titulo de 10 noticias.
+					let noticiasTitulo = feed.responseXML.documentElement.childNodes[1].querySelectorAll("item title");
+					let linkNoticias = feed.responseXML.documentElement.childNodes[1].querySelectorAll("item link");
+
+					//Pega a imagem de 10 noticias
+					let imgEncoded = feed.responseXML.documentElement.childNodes[1].getElementsByTagName("content:encoded");
+					let tempDiv = document.createElement('div');
+					for(let i = 0; i < imgEncoded.length; i++){
+						tempDiv.insertAdjacentHTML("beforeend", imgEncoded[i].textContent);
+					}
+					let noticiasImg = tempDiv.querySelectorAll("img");
+
+					let noticia = Number(localStorage.getItem('_noticia'));
+					nomeAba();
+
+					let imgFundo = document.querySelector("#report-image img");
+
+					//Altera noticia e imagem
+					imgFundo.src = noticiasImg[noticia].src;
+
+					//Ao carregar imagem 
+					imgFundo.onload = function() {
+						//Faz o loading invisivel
+						document.querySelector("#loading").style = "display:none;"
+
+						//Mostra a noticia
+						document.querySelector("#news-text p").textContent = noticiasTitulo[noticia].textContent;
+
+						//Mostra logo do site
+						document.querySelector("#logo").style = "opacity: 1;"
+
+						//Mostra a imagem de fundo
+						imgFundo.style = "opacity: 1;"
+						//Escreve o nome e muda cor da categoria
+						document.querySelector("#categoria p").innerHTML = firstUpperCase(categoria);
+						tagCategoria.style.backgroundColor = cor;
+						tagCategoria.classList = ""; //responsavel por fazer a categoria deslisar para baixo
+					}
+					//Criar QR Code
+					var qrcode = new QRCode("qrcode");
+
+					function makeCode () {    
+  					var elText = linkNoticias[noticia].textContent;
+  					console.log(elText);
+  					qrcode.makeCode(elText);
+					}
+					makeCode();
+
+					//Redimensionar QR Code
+					document.querySelector("#qrcode img").style = "width: 12vw; border: 0.5vw solid white;";
+				}
+			}
+			//Pega as noticias do link
+			feed.open("GET", "https://lineanews.com.br/category/"+categoriaNormalizada+"/feed/", true);
+			feed.setRequestHeader('Accept','application/rss+xml');
+
+			feed.send();
+
+			function rotacionarCategoria(qntCategoria, qntNoticias){
+				let _categoria = Number(localStorage.getItem('_categoria')) || 0;
+				let _noticia = Number(localStorage.getItem('_noticia')) || 0;
+
+				localStorage.setItem('_categoria', _categoria + 1);
+
+				//Caso alcançou o limite de categorias voltar ao começo
+				if (_categoria >= qntCategoria.length - 1){
+					localStorage.setItem('_categoria', 0);
+
+					//Incrementar uma noticia das categorias
+					localStorage.setItem('_noticia', _noticia + 1);
+
+					//Caso alcance o limite de noticias voltar ao começo
+					if(_noticia >= qntNoticias - 1){
+						localStorage.setItem('_noticia', 0);
+					}
+				}
+
+				return _categoria;
+			}
+
+			//Achar a cor correspondente a categoria
+			function pegarCor(cat, cores){
+				for(let color in cores){
+					if(color === cat){
+						return cores[color];
+					}
+				}
+				//Caso não tenha uma cor setada para categoria selecionado voltar cor desta categoria abaixo.
+				return cores['cidades'];
+
+			}
+
+			//Muda o nome da aba conforme a categoria escolhida
+			function nomeAba(cat){
+				document.querySelector("title").text = "Linea News - " + firstUpperCase(categoria);
+			}
+
+			//Transforma a primeira letra de uma String em maiuscula.
+			function firstUpperCase(str){
+				return str.charAt(0).toUpperCase() + str.slice(1);
+			}
+
+			//Remove acentos de uma string
+			function removerAcentos(str){
+				return str.normalize('NFD').replace(/[\u0300-\u036f]/g, "").toLowerCase();
+			}
+
+			//Puxa categoria que irá mostrar a noticia
+			function puxarCategoria(){
+				let index = rotacionarCategoria(categorias, limiteNoticias);
+				return categorias[index];
+			}
+
+	</script>
+</body>
+</html>
