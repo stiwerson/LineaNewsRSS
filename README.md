@@ -10,5 +10,5 @@ QRCode generator = http://davidshimjs.github.io/qrcodejs/
 RSS Feed criado para o Linea news usando requisição de API
 
 ### Creditos
-Rss feed = Johnny Stiwerson
+Rss feed = Johnny Stiwerson<br>
 Gerador de QRCode = http://davidshimjs.github.io/qrcodejs/
