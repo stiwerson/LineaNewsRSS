@@ -3,7 +3,7 @@
 RSS Feed created for Linea News using API request
 
 ### Credits
-Rss feed = Johnny Stiwerson
+Rss feed = Johnny Stiwerson<br>
 QRCode generator = http://davidshimjs.github.io/qrcodejs/
 
 # Linea News RSS [PT-BR]
